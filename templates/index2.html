@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form method="post" action="/result">
+    <label>Entry : </label>
+    <input type="text" size=15 name="guess" placeholder="Enter your guess (a number between 1 and 30)">
+    <br>
+    <br>
+    <button type="submit">Guess</button>
+</form>
+<br>
+<img src="/static/img/numbers.jpg">
+{% endblock content %}
