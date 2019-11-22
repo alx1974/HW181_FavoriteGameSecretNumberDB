@@ -1,36 +1,57 @@
 import random
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, url_for, redirect
+
+from models import User, db
 
 app = Flask(__name__)
+db.create_all()
 
 
 @app.route("/", methods=["GET"])
 def index():
-    secret_number = request.cookies.get("secret_number")  # check if there is already a cookie named secret_number
-    attempts = 0
-    response = make_response(render_template("index2.html"))
-    if not secret_number:
-        new_secret = random.randint(1, 30)
-        response.set_cookie("secret_number", str(new_secret))
+    email_address = request.cookies.get("email")
+    if email_address:
+        user = db.query(User).filter_by(email=email_address).first()
+    else:
+        user = None
 
+    return render_template("index2.html", user=user)
+
+
+@app.route("/login", methods=["POST"])
+def login():
+    name = request.form.get("user-name")
+    email = request.form.get("user-email")
+    secret_number = random.randint(1, 30)
+    user = db.query(User).filter_by(email=email).first()
+    if not user:
+        user = User(name=name, email=email, secret_number=secret_number)
+        db.add(user)
+        db.commit()
+
+    response = make_response(redirect(url_for('index')))
+    response.set_cookie("email", email)
     return response
 
 
 @app.route("/result", methods=["POST"])
 def result():
     guess = int(request.form.get("guess"))
-    secret_number = int(request.cookies.get("secret_number"))
-    if guess == secret_number:
-        message = "You guessed the secret number! The secret number is {0}".format(str(secret_number)) + "."
-        response = make_response(render_template("result.html", message=message))
-        response.set_cookie("secret_number", str(random.randint(1, 30)))
-        return response
-    elif guess > secret_number:
+
+    email_address = request.cookies.get("email")
+    user = db.query(User).filter_by(email=email_address).first()
+    if guess == user.secret_number:
+        message = "You guessed the secret number! The secret number is {0}".format(str(user.secret_number)) + "."
+        new_secret = random.randint(1, 30)  # neue Zufallszahl erstellen
+        user.secret_number = new_secret  # dem User Objekt zuordnen
+        db.add(user)
+        db.commit()
+
+    elif guess > user.secret_number:
         message = "Your guess is wrong..the secret number is smaller."
-        return render_template("result.html", message=message)
-    elif guess < secret_number:
+    elif guess < user.secret_number:
         message = "Your guess is wrong..the secret number is bigger."
-        return render_template("result.html", message=message)
+    return render_template("result.html", message=message)
 
 
 if __name__ == '__main__':
