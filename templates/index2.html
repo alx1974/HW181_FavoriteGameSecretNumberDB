@@ -15,11 +15,14 @@
     <form method="post" action="/login">
         <input type="text" size=15 name="user-name" placeholder="Enter your name ">
         <br>
-        <input type="text" size=15 name="user-email" placeholder="Enter your e-mail address">
+        <input type="email" size=15 name="user-email" placeholder="Enter your e-mail address">
+        <br>
+        <input type="password" size=15 name="user-password" placeholder="Enter your password">
         <br>
         <br>
         <button type="submit">Submit data</button>
     </form>
 {% endif %}
-<img src="/static/img/numbers.jpg">
+<br>
+<img src="/static/img/numbers.jpg" height="150" weight="150">
 {% endblock content %}
